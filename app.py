@@ -158,7 +158,7 @@ class Application(fix.Application):
 
 @app.route('/', methods=['GET'])
 def data():
-    return jsonify({'gauge': gauge, 'index' : index})
+    return jsonify({'GAU': gauge["GAU"], 'index' : index, 'currencies': currjson})
 
 def run_server():
     print("Flask server started running.")
