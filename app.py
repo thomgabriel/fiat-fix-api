@@ -59,6 +59,10 @@ class Application(fix.Application):
     def onLogon(self, sessionID):
         self.sessionID = sessionID
         print ("Successful Logon to session '%s'." % sessionID.toString())
+
+        for curr in currencies:
+            self.get_quote(curr)
+
         return
     def onLogout(self, sessionID): 
         return
@@ -145,11 +149,6 @@ class Application(fix.Application):
 
     def run(self):
         """Run"""
-        time.sleep(2)
-
-        for curr in currencies:
-            self.get_quote(curr)
-
         while 1:
 
             for curr in list(enumerate(currjson)):

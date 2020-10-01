@@ -7,7 +7,7 @@ key.txt
 .DS_Store
 
 # Logs
-logs/
+# logs/
 # Finance
 fin/
 
