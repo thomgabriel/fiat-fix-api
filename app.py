@@ -48,7 +48,7 @@ currjson = {
     "THB":0.0,
     }
 index = {}
-gauge = {}
+gauge = None
 
 class Application(fix.Application):
     """FIX Application"""
@@ -81,7 +81,6 @@ class Application(fix.Application):
         return
 
     def fromAdmin(self, message, sessionID):
-        print
         return
 
     def toApp(self, message, sessionID):
@@ -94,12 +93,12 @@ class Application(fix.Application):
 
         if message.getField(55)[:3] == "USD":
             try:
-                logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
+                # logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
                 currjson[message.getField(55)[-3:]] = round(1/float(message.getField(132)),5)
             except:
                 pass
         else:
-            logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
+            # logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
             currjson[message.getField(55)[:3]] = round(float(message.getField(132)),5)
         return
 
@@ -117,48 +116,56 @@ class Application(fix.Application):
     
         fix.Session.sendToTarget(quote, self.sessionID)
 
-    def marketDataRequest(self,curr):
-        print("\nMarket Data Request for {}:".format(curr))
-        marketData = fix.Message()
+    # def marketDataRequest(self,curr):
+    #     print("\nMarket Data Request for {}:".format(curr))
+    #     marketData = fix.Message()
 
-        marketData.getHeader().setField(fix.BeginString(fix.BeginString_FIX44)) 
-        marketData.getHeader().setField(fix.MsgType(fix.MsgType_MarketDataRequest))
+    #     marketData.getHeader().setField(fix.BeginString(fix.BeginString_FIX44)) 
+    #     marketData.getHeader().setField(fix.MsgType(fix.MsgType_MarketDataRequest))
 
-        marketData.setField(fix.MDReqID(curr)) 
-        marketData.setField(fix.SubscriptionRequestType(fix.SubscriptionRequestType_SNAPSHOT_PLUS_UPDATES)) 
-        marketData.setField(fix.MarketDepth(1))
+    #     marketData.setField(fix.MDReqID(curr)) 
+    #     marketData.setField(fix.SubscriptionRequestType(fix.SubscriptionRequestType_SNAPSHOT_PLUS_UPDATES)) 
+    #     marketData.setField(fix.MarketDepth(1))
 
-        marketData.setField(fix.MDUpdateType(0))
-        marketData.setField(fix.NoMDEntryTypes(2))
-        marketData.setField(fix.NoRelatedSym(1))
+    #     marketData.setField(fix.MDUpdateType(0))
+    #     marketData.setField(fix.NoMDEntryTypes(2))
+    #     marketData.setField(fix.NoRelatedSym(1))
         
-        group = fixnn.MarketDataRequest().NoMDEntryTypes()
+    #     group = fixnn.MarketDataRequest().NoMDEntryTypes()
         
-        group.setField(fix.MDEntryType(fix.MDEntryType_BID))
-        marketData.addGroup(group)
+    #     group.setField(fix.MDEntryType(fix.MDEntryType_BID))
+    #     marketData.addGroup(group)
         
-        group.setField(fix.MDEntryType(fix.MDEntryType_OFFER))
-        marketData.addGroup(group)
+    #     group.setField(fix.MDEntryType(fix.MDEntryType_OFFER))
+    #     marketData.addGroup(group)
 
-        symbol = fixnn.MarketDataRequest().NoRelatedSym()
+    #     symbol = fixnn.MarketDataRequest().NoRelatedSym()
        
-        symbol.setField(fix.Symbol(curr))
-        marketData.addGroup(symbol)
+    #     symbol.setField(fix.Symbol(curr))
+    #     marketData.addGroup(symbol)
 
-        fix.Session.sendToTarget(marketData, self.sessionID)
+    #     fix.Session.sendToTarget(marketData, self.sessionID)
 
     def run(self):
+        global gauge
+
         """Run"""
         while 1:
+            if all(currjson.values()):
+                try:
+                    if all(curr for curr in currjson if currjson[curr] != 0.0):
+                    # if len(currjson) == len(currencies):
+                        for curr in list(enumerate(currjson)):
+                            index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
 
-            for curr in list(enumerate(currjson)):
-                
-                index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
-            gauge["GAU"] = round(statistics.mean(list(index[curr] for curr in index)),5)
+                        gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
+
+                except:
+                    pass
 
 @app.route('/', methods=['GET'])
 def data():
-    return jsonify({'GAU': gauge["GAU"], 'index' : index, 'currencies': currjson})
+    return jsonify({'GAU': gauge, 'index' : index, 'currencies': currjson})
 
 def run_server():
     print("Flask server started running.")
