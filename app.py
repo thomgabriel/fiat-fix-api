@@ -93,12 +93,12 @@ class Application(fix.Application):
 
         if message.getField(55)[:3] == "USD":
             try:
-                # logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
+                logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
                 currjson[message.getField(55)[-3:]] = round(1/float(message.getField(132)),5)
             except:
                 pass
         else:
-            # logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
+            logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
             currjson[message.getField(55)[:3]] = round(float(message.getField(132)),5)
         return
 
