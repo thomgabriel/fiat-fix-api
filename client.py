@@ -11,7 +11,7 @@ def main(config_file):
         settings = quickfix.SessionSettings(config_file)
         application = app.Application()
         storefactory = quickfix.FileStoreFactory(settings)
-        logfactory = quickfix.FileLogFactory(settings)
+        logfactory = None #quickfix.FileLogFactory(settings)
         initiator = quickfix.SocketInitiator(application, storefactory, settings, logfactory)
 
         initiator.start()

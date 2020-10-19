@@ -1,13 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 import logging
-def setup_logger(logger_name, log_file, level=logging.INFO):
-    lz = logging.getLogger(logger_name)
-    formatter = logging.Formatter('%(asctime)s : %(message)s')
-    fileHandler = logging.FileHandler(log_file, mode='w')
-    fileHandler.setFormatter(formatter)
-    lz.setLevel(level)
-    lz.addHandler(fileHandler)
-    streamHandler = logging.StreamHandler()
-    streamHandler.setFormatter(formatter)
-    lz.addHandler(streamHandler) 
+def setup_logger():
+    '''Prints logger info to terminal'''
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger

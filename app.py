@@ -1,7 +1,5 @@
 import quickfix as fix
 import quickfix44 as fixnn
-import time
-import logging
 from util.logger import setup_logger
 import json
 import math
@@ -22,8 +20,7 @@ HOST = '0.0.0.0'
 DEBUG_SERVER = False
 
 # Logger
-setup_logger('logfix', 'Logs/message.log')
-logfix = logging.getLogger('logfix')
+logfix = setup_logger()
 
 cosmo_constant = 3
 currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD","NZD/USD","USD/ILS","USD/PLN","USD/TRY","USD/CNH","USD/HKD","USD/NOK","USD/SEK","USD/ZAR","USD/MXN","USD/THB"]
@@ -90,16 +87,16 @@ class Application(fix.Application):
     def fromApp(self, message, sessionID):
         global currjson
         # logfix.info("\nReceived the following message: %s" % message.toString())
-
-        if message.getField(55)[:3] == "USD":
-            try:
-                logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
-                currjson[message.getField(55)[-3:]] = round(1/float(message.getField(132)),5)
-            except:
-                pass
-        else:
-            logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
-            currjson[message.getField(55)[:3]] = round(float(message.getField(132)),5)
+        if  message.getField(132):
+            if message.getField(55)[:3] == "USD":
+                try:
+                    logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
+                    currjson[message.getField(55)[-3:]] = round(1/float(message.getField(132)),5)
+                except:
+                    pass
+            else:
+                logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
+                currjson[message.getField(55)[:3]] = round(float(message.getField(132)),5)
         return
 
     def get_quote(self,curr):
