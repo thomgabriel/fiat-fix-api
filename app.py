@@ -1,3 +1,4 @@
+from client import main
 import quickfix as fix
 import quickfix44 as fixnn
 from util.logger import setup_logger
@@ -5,8 +6,11 @@ import json
 import math
 import statistics 
 from flask import Flask,jsonify
+from database.mongo import GaugeDB
+import datetime 
 
 app = Flask(__name__)
+gauge_db = GaugeDB()
 
 # Needed for single main.py file
 THREADED_RUN = True
@@ -87,15 +91,15 @@ class Application(fix.Application):
     def fromApp(self, message, sessionID):
         global currjson
         # logfix.info("\nReceived the following message: %s" % message.toString())
-        if  message.getField(132):
-            if message.getField(55)[:3] == "USD":
+        if (message.getField(132)):
+            if (message.getField(55)[:3] == "USD"):
                 try:
-                    logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
+                    # logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
                     currjson[message.getField(55)[-3:]] = round(1/float(message.getField(132)),5)
                 except:
                     pass
             else:
-                logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
+                # logfix.info('{}: {}'.format(message.getField(55)[:3],round(float(message.getField(132)),5)))
                 currjson[message.getField(55)[:3]] = round(float(message.getField(132)),5)
         return
 
@@ -113,50 +117,16 @@ class Application(fix.Application):
     
         fix.Session.sendToTarget(quote, self.sessionID)
 
-    # def marketDataRequest(self,curr):
-    #     print("\nMarket Data Request for {}:".format(curr))
-    #     marketData = fix.Message()
-
-    #     marketData.getHeader().setField(fix.BeginString(fix.BeginString_FIX44)) 
-    #     marketData.getHeader().setField(fix.MsgType(fix.MsgType_MarketDataRequest))
-
-    #     marketData.setField(fix.MDReqID(curr)) 
-    #     marketData.setField(fix.SubscriptionRequestType(fix.SubscriptionRequestType_SNAPSHOT_PLUS_UPDATES)) 
-    #     marketData.setField(fix.MarketDepth(1))
-
-    #     marketData.setField(fix.MDUpdateType(0))
-    #     marketData.setField(fix.NoMDEntryTypes(2))
-    #     marketData.setField(fix.NoRelatedSym(1))
-        
-    #     group = fixnn.MarketDataRequest().NoMDEntryTypes()
-        
-    #     group.setField(fix.MDEntryType(fix.MDEntryType_BID))
-    #     marketData.addGroup(group)
-        
-    #     group.setField(fix.MDEntryType(fix.MDEntryType_OFFER))
-    #     marketData.addGroup(group)
-
-    #     symbol = fixnn.MarketDataRequest().NoRelatedSym()
-       
-    #     symbol.setField(fix.Symbol(curr))
-    #     marketData.addGroup(symbol)
-
-    #     fix.Session.sendToTarget(marketData, self.sessionID)
-
     def run(self):
         global gauge
-
         """Run"""
         while 1:
             if all(currjson.values()):
                 try:
-                    if all(curr for curr in currjson if currjson[curr] != 0.0):
-                    # if len(currjson) == len(currencies):
-                        for curr in list(enumerate(currjson)):
-                            index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
-
-                        gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
-
+                    # if all(curr for curr in currjson if currjson[curr] != 0.0):
+                    for curr in list(enumerate(currjson)):
+                        index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
+                    gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
                 except:
                     pass
 
@@ -167,3 +137,10 @@ def data():
 def run_server():
     print("Flask server started running.")
     app.run(host=HOST, port=PORT, debug=DEBUG_SERVER, threaded=THREADED_RUN)
+
+def insert_db():
+    if gauge != None:
+        if gauge_db.get_latest_gauge() != {'GAU': gauge, 'index' : index, 'currencies': currjson}:
+            _gauge = {'timestamp': datetime.datetime.now(),'GAU': gauge, 'index' : index, 'currencies': currjson}
+            gauge_db.insert_gauge(_gauge)
+            print("Updating MongoDB...")
