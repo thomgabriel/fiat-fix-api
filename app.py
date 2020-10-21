@@ -28,28 +28,35 @@ logfix = setup_logger()
 
 cosmo_constant = 3
 currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD","NZD/USD","USD/ILS","USD/PLN","USD/TRY","USD/CNH","USD/HKD","USD/NOK","USD/SEK","USD/ZAR","USD/MXN","USD/THB"]
-currjson = {
-    "GBP":0.0,
-    "EUR":0.0,
-    "CHF":0.0,
-    "JPY":0.0,
-    "CAD":0.0,
-    "SGD":0.0,
-    "AUD":0.0,
-    "NZD":0.0,
-    "ILS":0.0,
-    "PLN":0.0,
-    "TRY":0.0,
-    "CNH":0.0,
-    "HKD":0.0,
-    "NOK":0.0,
-    "SEK":0.0,
-    "ZAR":0.0,
-    "MXN":0.0,
-    "THB":0.0,
-    }
-index = {}
-gauge = None
+
+try:
+    g_data = gauge_db.get_latest_gauge()
+    currjson = g_data.get("currencies")
+    index = g_data.get("index")
+    gauge = g_data.get("GAU")
+except:
+    currjson = {
+        "GBP":0.0,
+        "EUR":0.0,
+        "CHF":0.0,
+        "JPY":0.0,
+        "CAD":0.0,
+        "SGD":0.0,
+        "AUD":0.0,
+        "NZD":0.0,
+        "ILS":0.0,
+        "PLN":0.0,
+        "TRY":0.0,
+        "CNH":0.0,
+        "HKD":0.0,
+        "NOK":0.0,
+        "SEK":0.0,
+        "ZAR":0.0,
+        "MXN":0.0,
+        "THB":0.0,
+        }
+    index = {}
+    gauge = None
 
 class Application(fix.Application):
     """FIX Application"""
@@ -57,14 +64,14 @@ class Application(fix.Application):
     def onCreate(self, sessionID):
         self.sessionID = sessionID
         return
+
     def onLogon(self, sessionID):
         self.sessionID = sessionID
         print ("Successful Logon to session '%s'." % sessionID.toString())
-
         for curr in currencies:
             self.get_quote(curr)
-
         return
+
     def onLogout(self, sessionID): 
         return
 
@@ -119,6 +126,7 @@ class Application(fix.Application):
 
     def run(self):
         global gauge
+
         """Run"""
         while 1:
             if all(currjson.values()):
