@@ -98,7 +98,7 @@ class Application(fix.Application):
     def fromApp(self, message, sessionID):
         global currjson
         # logfix.info("\nReceived the following message: %s" % message.toString())
-        if (message.getField(132)):
+        if (message.getField(132) != 0.0):
             if (message.getField(55)[:3] == "USD"):
                 try:
                     # logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
@@ -148,7 +148,8 @@ def run_server():
 
 def insert_db():
     if gauge != None:
-        if gauge_db.get_latest_gauge() != {'GAU': gauge, 'index' : index, 'currencies': currjson}:
+        last_db = gauge_db.get_latest_gauge()
+        if {'GAU': last_db.get('GAU'), 'index' : last_db.get('index'), 'currencies': last_db.get('currencies')} != {'GAU': gauge, 'index' : index, 'currencies': currjson}:
             _gauge = {'timestamp': datetime.datetime.now(),'GAU': gauge, 'index' : index, 'currencies': currjson}
             gauge_db.insert_gauge(_gauge)
             print("Updating MongoDB...")
