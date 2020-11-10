@@ -1,8 +1,5 @@
-from client import main
 import quickfix as fix
-import quickfix44 as fixnn
 from util.logger import setup_logger
-import json
 import math
 import statistics 
 from flask import Flask,jsonify
@@ -32,7 +29,6 @@ currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/U
 try:
     g_data = gauge_db.get_latest_gauge()
     currjson = g_data.get("currencies")
-    index = g_data.get("index")
     gauge = g_data.get("GAU")
 except:
     currjson = {
@@ -55,7 +51,6 @@ except:
         "MXN":0.0,
         "THB":0.0,
         }
-    index = {}
     gauge = None
 
 class Application(fix.Application):
@@ -98,7 +93,7 @@ class Application(fix.Application):
     def fromApp(self, message, sessionID):
         global currjson
         # logfix.info("\nReceived the following message: %s" % message.toString())
-        if (message.getField(132) != 0.0):
+        if (float(message.getField(132)) != 0.0):
             if (message.getField(55)[:3] == "USD"):
                 try:
                     # logfix.info('{}: {}'.format(message.getField(55)[-3:],round(1/float(message.getField(132)),5)))
@@ -126,12 +121,11 @@ class Application(fix.Application):
 
     def run(self):
         global gauge
-
+        index = {}
         """Run"""
         while 1:
             if all(currjson.values()):
                 try:
-                    # if all(curr for curr in currjson if currjson[curr] != 0.0):
                     for curr in list(enumerate(currjson)):
                         index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
                     gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
@@ -140,7 +134,7 @@ class Application(fix.Application):
 
 @app.route('/', methods=['GET'])
 def data():
-    return jsonify({'GAU': gauge, 'index' : index, 'currencies': currjson})
+    return jsonify({'GAU': gauge, 'currencies': currjson})
 
 def run_server():
     print("Flask server started running.")
@@ -149,7 +143,7 @@ def run_server():
 def insert_db():
     if gauge != None:
         last_db = gauge_db.get_latest_gauge()
-        if {'GAU': last_db.get('GAU'), 'index' : last_db.get('index'), 'currencies': last_db.get('currencies')} != {'GAU': gauge, 'index' : index, 'currencies': currjson}:
-            _gauge = {'timestamp': datetime.datetime.now(),'GAU': gauge, 'index' : index, 'currencies': currjson}
+        if {'GAU': last_db.get('GAU'), 'currencies': last_db.get('currencies')} != {'GAU': gauge, 'currencies': currjson}:
+            _gauge = {'timestamp': datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),'GAU': gauge, 'currencies': currjson}
             gauge_db.insert_gauge(_gauge)
             print("Updating MongoDB...")

@@ -6,8 +6,8 @@ key.txt
 # MacOS
 .DS_Store
 
-# Logs
-# logs/
+Logs
+logs/
 # Finance
 fin/
 
