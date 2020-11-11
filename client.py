@@ -31,10 +31,14 @@ def run_db():
         schedule.run_pending()
         sleep(1)
 
+def run_yfi():
+    schedule.every(1).minutes.do(app.updateCurrYFI)
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='FIX Client')
     parser.add_argument('file_name', type=str, help='Name of configuration file')
     args = parser.parse_args()
     Thread(target=app.run_server).start()
+    Thread(target=run_yfi).start()
     Thread(target=run_db).start()
     main(args.file_name)
