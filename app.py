@@ -6,10 +6,6 @@ from flask import Flask,jsonify
 from database.mongo import GaugeDB
 import datetime 
 
-import yfinance as yf
-DKK = yf.Ticker("DKKUSD=X")
-RUB = yf.Ticker("RUBUSD=X")
-HUF = yf.Ticker("HUFUSD=X")
 
 app = Flask(__name__)
 gauge_db = GaugeDB()
@@ -29,28 +25,7 @@ DEBUG_SERVER = False
 logfix = setup_logger()
 
 cosmo_constant = 3
-currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD","NZD/USD","USD/ILS","USD/PLN","USD/TRY","USD/CNH","USD/HKD","USD/NOK","USD/SEK","USD/ZAR","USD/MXN","USD/THB"]
-# currencies = ["GBP/USD",
-#             "EUR/USD",
-#             "USD/CHF",
-#             "USD/JPY",
-#             "USD/CAD",
-#             "USD/SGD",
-#             "AUD/USD",
-#             "NZD/USD",
-#             "USD/ILS",
-#             "USD/PLN",
-#             "USD/TRY",
-#             "DKK/USD"
-#             "USD/CNH",
-#             "USD/HKD",
-#             "USD/NOK",
-#             "USD/SEK",
-#             "USD/ZAR",
-#             "USD/MXN",
-#             "USD/THB",
-#             "RUB/USD",
-#             "HUF/USD",]
+currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD","NZD/USD","USD/ILS","USD/PLN","USD/TRY","USD/DKK", "USD/CNH","USD/HKD","USD/NOK","USD/SEK","USD/ZAR","USD/MXN","USD/THB", "USD/RUB", "USD/HUF"]
 
 try:
     g_data = gauge_db.get_latest_gauge()
@@ -105,8 +80,8 @@ class Application(fix.Application):
         if (msgType.getValue () == fix.MsgType_Logon):
             print('Logging on.')
    
-            message.setField(fix.Password('DEMO032019'))
-            message.setField(fix.Username('APPLEBY_DMFX_QS'))        
+            message.setField(fix.Password('WHITE@2020'))
+            message.setField(fix.Username('WHITE_FIX_QS'))        
             message.setField (fix.ResetSeqNumFlag (True))   
 
         # logfix.info("S toAdmin >> %s" % message.toString())
@@ -176,9 +151,3 @@ def insert_db():
             _gauge = {'timestamp': datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),'GAU': gauge, 'currencies': currjson}
             gauge_db.insert_gauge(_gauge)
             print("Updating MongoDB...")
-
-def updateCurrYFI():
-    currjson['DKK'] = round(DKK.info.get("bid"),5)
-    currjson['RUB'] = round(RUB.info.get("bid"),5)
-    currjson['HUF'] = round(HUF.info.get("bid"),5)
-    print("Updating Pairs...")
