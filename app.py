@@ -4,7 +4,8 @@ import math
 import statistics 
 from flask import Flask,jsonify
 from database.mongo import GaugeDB
-import datetime 
+import datetime
+from time import sleep, time
 
 
 app = Flask(__name__)
@@ -136,9 +137,11 @@ class Application(fix.Application):
                 except:
                     pass
 
-@app.route('/', methods=['GET'])
-def data():
-    return jsonify({'GAU': gauge, 'currencies': currjson})
+            sleep(1)
+
+@app.route('/api/', methods=['GET'])
+def gau():
+    return jsonify({'GAU': {'price' :gauge ,'timestamp': time()}})
 
 def run_server():
     print("Flask server started running.")
