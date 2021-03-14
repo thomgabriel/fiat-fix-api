@@ -131,7 +131,7 @@ class Application(fix.Application):
             if all(currjson.values()):
                 try:
                     for curr in list(enumerate(currjson)):
-                        index[curr[1]] = round((currjson[curr[1]]+12)* math.exp((-(((1/len(currjson))*(curr[0]))**3))),5)
+                        index[curr[1]] = round((currjson[curr[1]]+12)*(((1/len(currjson))*(curr[0]))**3),5)
                     gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
                 except:
                     pass
