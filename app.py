@@ -25,8 +25,7 @@ DEBUG_SERVER = False
 # Logger
 logfix = setup_logger()
 
-cosmo_constant = 3
-currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD","NZD/USD","USD/ILS","USD/PLN","USD/TRY","USD/DKK", "USD/CNH","USD/HKD","USD/NOK","USD/SEK","USD/ZAR","USD/MXN","USD/THB", "USD/RUB", "USD/HUF"]
+currencies = ["GBP/USD","EUR/USD","USD/CHF","USD/JPY","USD/CAD","USD/SGD","AUD/USD"]
 
 try:
     g_data = gauge_db.get_latest_gauge()
@@ -132,7 +131,7 @@ class Application(fix.Application):
             if all(currjson.values()):
                 try:
                     for curr in list(enumerate(currjson)):
-                        index[curr[1]] = round((currjson[curr[1]]+1)* math.exp((-(((cosmo_constant/len(currjson))*(curr[0]))**2))) +1,5)
+                        index[curr[1]] = round((currjson[curr[1]]+12)* math.exp((-(((1/len(currjson))*(curr[0]))**3))),5)
                     gauge = round(statistics.mean(list(index[curr] for curr in index)),5)
                 except:
                     pass
